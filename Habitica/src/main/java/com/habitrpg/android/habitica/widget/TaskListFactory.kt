@@ -5,15 +5,18 @@ import android.content.Context
 import android.content.Intent
 import android.os.Handler
 import android.text.SpannableStringBuilder
-import android.text.style.DynamicDrawableSpan
+import android.util.Log
 import android.widget.RemoteViews
 import android.widget.RemoteViewsService
+import androidx.core.content.ContextCompat.startActivity
 import com.habitrpg.android.habitica.HabiticaBaseApplication
 import com.habitrpg.android.habitica.R
 import com.habitrpg.android.habitica.data.TaskRepository
 import com.habitrpg.android.habitica.data.UserRepository
 import com.habitrpg.android.habitica.helpers.RxErrorHandler
 import com.habitrpg.android.habitica.models.tasks.Task
+import com.habitrpg.android.habitica.ui.activities.HabitButtonWidgetActivity
+import com.habitrpg.android.habitica.ui.activities.SkillTasksActivity
 import com.habitrpg.android.habitica.ui.helpers.MarkdownParser
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
@@ -85,9 +88,20 @@ abstract class TaskListFactory internal constructor(val context: Context, intent
 
             remoteView.setTextViewText(listItemTextResId, builder)
             remoteView.setInt(R.id.checkbox_background, "setBackgroundResource", task.lightTaskColor)
-            val fillInIntent = Intent()
-            fillInIntent.putExtra(TaskListWidgetProvider.TASK_ID_ITEM, task.id)
-            remoteView.setOnClickFillInIntent(R.id.widget_list_row, fillInIntent)
+
+            if (task.checklist?.size != null && task.checklist?.size!! > 0) {
+                Log.i("TaskListFactory", "\"%s\" is a checklist".format(task.text))
+
+                val checklistIntent = Intent(context, SkillTasksActivity::class.java)
+                remoteView.setOnClickFillInIntent(R.id.widget_list_row, checklistIntent)
+            }
+            else {
+                Log.i("TaskListFactory", "\"%s\" is NOT a checklist".format(task.text))
+
+                val fillInIntent = Intent()
+                fillInIntent.putExtra(TaskListWidgetProvider.TASK_ID_ITEM, task.id)
+                remoteView.setOnClickFillInIntent(R.id.widget_list_row, fillInIntent)
+            }
         }
         return remoteView
     }
